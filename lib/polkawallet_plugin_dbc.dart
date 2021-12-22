@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:polkawallet_plugin_dbc/common/constants.dart';
@@ -62,12 +63,12 @@ class PluginDBC extends PolkawalletPlugin {
     jsCodeVersion: 10910,
   );
 
-  @override
-  final bool recoveryEnabled;
+  // @override
+  // final bool recoveryEnabled;
 
   @override
   List<NetworkParams> get nodeList {
-    return node_list.map((e) => NetworkParams.fromJson(e)).toList();
+    return node_list_dbc.map((e) => NetworkParams.fromJson(e)).toList();
   }
 
   @override
@@ -78,18 +79,21 @@ class PluginDBC extends PolkawalletPlugin {
 
   @override
   List<HomeNavItem> getNavItems(BuildContext context, Keyring keyring) {
-    return [
-      HomeNavItem(
-        text: 'DBC',
-        icon: Image(
-            image: AssetImage('assets/images/dbc_dark.png',
-                package: 'polkawallet_plugin_dbc')),
-        iconActive: Image(
-            image: AssetImage('assets/images/dbc_indigo.png',
-                package: 'polkawallet_plugin_dbc')),
-        content: DBCEntry(this, keyring),
-      )
-    ];
+    return home_nav_items.map((e) {
+      final dic = I18n.of(context)!.getDic(i18n_full_dic_dbc, 'common')!;
+      return HomeNavItem(
+        text: dic[e]!,
+        icon: SvgPicture.asset(
+          'packages/polkawallet_plugin_dbc/assets/images/public/nav_$e.svg',
+          color: Theme.of(context).disabledColor,
+        ),
+        iconActive: SvgPicture.asset(
+          'packages/polkawallet_plugin_dbc/assets/images/public/nav_$e.svg',
+          color: basic.primaryColor,
+        ),
+        content: e == 'staking' ? Staking(this, keyring) : Gov(this),
+      );
+    }).toList();
   }
 
   @override
@@ -144,7 +148,7 @@ class PluginDBC extends PolkawalletPlugin {
   Future<String> loadJSCode() => rootBundle.loadString(
       'packages/polkawallet_plugin_dbc/lib/js_service_dbc/dist/main.js');
 
-  final StoreCache _cache;
+  final StoreCache _cache = StoreCacheDBC();
   late PluginStore _store;
   late PluginApi _service;
   PluginStore get store => _store;
@@ -152,14 +156,23 @@ class PluginDBC extends PolkawalletPlugin {
 
   @override
   Future<void> onWillStart(Keyring keyring) async {
-    _api = AcalaApi(AcalaService(this));
-
-    await GetStorage.init(acala_plugin_cache_key);
+    await GetStorage.init(plugin_dbc_storage_key);
 
     _store = PluginStore(_cache);
-    _loadCacheData(keyring.current);
 
-    _service = PluginService(this, keyring);
+    try {
+      loadBalances(keyring.current);
+
+      _store.staking.loadCache(keyring.current.pubKey);
+      _store.gov.clearState();
+      _store.gov.loadCache();
+      print('dbc plugin cache data loaded');
+    } catch (err) {
+      print(err);
+      print('load dbc cache data failed');
+    }
+
+    _service = PluginApi(this, keyring);
   }
 
   // @override
