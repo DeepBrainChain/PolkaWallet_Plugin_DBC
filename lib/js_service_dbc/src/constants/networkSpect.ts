@@ -67,6 +67,8 @@ export const SubstrateNetworkKeys = Object.freeze({
   SUBSTRATE_DEV:
     "0x0d667fd278ec412cd9fccdb066f09ed5b4cfd9c9afa9eb747213acb02b1e70bc", // substrate --dev commit ac6a2a783f0e1f4a814cf2add40275730cd41be1 hosted on wss://dev-node.substrate.dev .
   WESTEND: "0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e",
+  DBC_MAINNET:
+    "0xd523fa2e0581f069b4f0c7b5944c21e9abc72305a08067868c91b898d1bf1dff",
 });
 
 const unknownNetworkBase = {
@@ -191,6 +193,16 @@ const substrateNetworkBase = {
     prefix: 42,
     title: "Westend",
     unit: "WND",
+  },
+  [SubstrateNetworkKeys.DBC_MAINNET]: {
+    color: "#000",
+    decimals: 15,
+    genesisHash: SubstrateNetworkKeys.DBC_MAINNET,
+    order: 10,
+    pathId: "dbc",
+    prefix: 42,
+    title: "DBC",
+    unit: "DBC",
   },
 };
 

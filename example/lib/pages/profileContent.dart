@@ -191,7 +191,7 @@ class _ProfileContentState extends State<ProfileContent> {
       final KeyPairData acc =
           await widget.network.sdk.api.keyring.addContact(widget.keyring, {
         'name': 'external_test',
-        'address': '14fpQHev6kcQxiW49e5Cg4VgY8QeKwLxwfbAHg81ro8r8AnD',
+        'address': '5CqTCD23gTbfmP8s6g1ehbJ66i6wi4Er4AguAw7yggDAKmPu',
         'observation': true,
       });
       setState(() {

@@ -54,7 +54,7 @@ import 'package:polkawallet_ui/pages/walletExtensionSignPage.dart';
 class PluginDBC extends PolkawalletPlugin {
   @override
   final basic = PluginBasicData(
-    name: 'dbc-mainnet',
+    name: 'dbc',
     ss58: 42,
     primaryColor: Colors.indigo,
     icon: Image.asset('packages/polkawallet_plugin_dbc/assets/images/logo.png'),

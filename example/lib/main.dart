@@ -96,7 +96,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _startPlugin() async {
-    await _keyring.init([2]);
+    await _keyring.init([42]);
 
     await _network.beforeStart(_keyring);
     final connected = await _network.start(_keyring);

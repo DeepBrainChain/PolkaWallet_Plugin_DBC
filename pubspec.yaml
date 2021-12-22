@@ -44,6 +44,7 @@ dev_dependencies:
 # The following section is specific to Flutter.
 flutter:
   assets:
+    - lib/js_service_dbc/dist/main.js
     - assets/images/public/bg_dbc.png
     - assets/images/public/dbc.png
     - assets/images/public/dbc_gray.png
