@@ -1,19 +1,17 @@
-import "@babel/polyfill";
 import { WsProvider, ApiPromise } from "@polkadot/api";
 import { subscribeMessage, getNetworkConst, getNetworkProperties } from "./service/setting";
 import keyring from "./service/keyring";
 import account from "./service/account";
 import staking from "./service/staking";
+// import wc from "./service/walletconnect";
 import gov from "./service/gov";
+import parachain from "./service/parachain";
+import assets from "./service/assets";
 import { genLinks } from "./utils/config/config";
 
-// send message to JSChannel: PolkaWallet
+// console.log will send message to MsgChannel to App
 function send(path: string, data: any) {
-  if (window.location.href === "about:blank") {
-    PolkaWallet.postMessage(JSON.stringify({ path, data }));
-  } else {
-    console.log(path, data);
-  }
+  console.log(JSON.stringify({ path, data }));
 }
 send("log", "main js loaded");
 (<any>window).send = send;
@@ -31,7 +29,7 @@ async function connect(nodes: string[]) {
         provider: wsProvider,
       });
       (<any>window).api = res;
-      const url = nodes[(<any>res)._options.provider.__private_15_endpointIndex];
+      const url = nodes[(<any>res)._options.provider.__private_9_endpointIndex];
       send("log", `${url} wss connected success`);
       resolve(url);
     } catch (err) {
@@ -62,5 +60,10 @@ const settings = {
 (<any>window).account = account;
 (<any>window).staking = staking;
 (<any>window).gov = gov;
+(<any>window).parachain = parachain;
+(<any>window).assets = assets;
+
+// walletConnect supporting is not ready.
+// (<any>window).walletConnect = wc;
 
 export default settings;

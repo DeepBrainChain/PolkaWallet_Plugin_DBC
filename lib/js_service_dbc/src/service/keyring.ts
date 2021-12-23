@@ -1,17 +1,11 @@
-import {
-  keyExtractSuri,
-  mnemonicGenerate,
-  cryptoWaitReady,
-} from "@polkadot/util-crypto";
+import { keyExtractSuri, mnemonicGenerate, mnemonicValidate, cryptoWaitReady, signatureVerify, encodeAddress } from "@polkadot/util-crypto";
 import { hexToU8a, u8aToHex } from "@polkadot/util";
 import BN from "bn.js";
-import {
-  parseQrCode,
-  getSigner,
-  makeTx,
-  getSubmittable,
-} from "../utils/QrSigner";
+import { parseQrCode, getSigner, makeTx, getSubmittable } from "../utils/QrSigner";
 import gov from "./gov";
+import metaDataMap from "../constants/networkMetadata";
+import { Metadata, TypeRegistry } from "@polkadot/types";
+import { wrapBytes } from "@polkadot/extension-dapp/wrapBytes";
 
 import { Keyring } from "@polkadot/keyring";
 import { KeypairType } from "@polkadot/util-crypto/types";
@@ -20,27 +14,73 @@ import { ApiPromise, SubmittableResult } from "@polkadot/api";
 import { SubmittableExtrinsic } from "@polkadot/api/types";
 import { ITuple } from "@polkadot/types/types";
 import { DispatchError } from "@polkadot/types/interfaces";
+import account from "./account";
 let keyring = new Keyring({ ss58Format: 0, type: "sr25519" });
 
 /**
  * Generate a set of new mnemonic.
  */
-async function gen() {
-  const mnemonic = mnemonicGenerate();
+async function gen(mnemonic: string, ss58Format: number, cryptoType: KeypairType, derivePath: string) {
+  const key = mnemonic || mnemonicGenerate();
+  if (!mnemonicValidate(key)) return null;
+
+  const keyPair = keyring.addFromMnemonic(key + (derivePath || ""), {}, cryptoType || "sr25519");
+  const address = encodeAddress(keyPair.publicKey, ss58Format || 0);
+  const icons = await account.genIcons([address]);
   return {
-    mnemonic,
+    mnemonic: key,
+    address,
+    svg: icons[0][1],
   };
+}
+
+/**
+ * mnemonic validate.
+ */
+async function checkMnemonicValid(mnemonic: string) {
+  return mnemonicValidate(mnemonic);
+}
+
+/**
+ * get address and avatar from mnemonic.
+ */
+async function addressFromMnemonic(mnemonic: string, ss58Format: number, cryptoType: KeypairType, derivePath: string) {
+  let keyPair: KeyringPair;
+  try {
+    keyPair = keyring.addFromMnemonic(mnemonic + (derivePath || ""), {}, cryptoType);
+    const address = encodeAddress(keyPair.publicKey, ss58Format);
+    const icons = await account.genIcons([address]);
+    return {
+      address,
+      svg: icons[0][1],
+    };
+  } catch (err) {
+    return { error: err.message };
+  }
+}
+
+/**
+ * get address and avatar from rawSeed.
+ */
+async function addressFromRawSeed(rawSeed: string, ss58Format: number, cryptoType: KeypairType, derivePath: string) {
+  let keyPair: KeyringPair;
+  try {
+    keyPair = keyring.addFromUri(rawSeed + (derivePath || ""), {}, cryptoType);
+    const address = encodeAddress(keyPair.publicKey, ss58Format);
+    const icons = await account.genIcons([address]);
+    return {
+      address,
+      svg: icons[0][1],
+    };
+  } catch (err) {
+    return { error: err.message };
+  }
 }
 
 /**
  * Import keyPair from mnemonic, rawSeed or keystore.
  */
-function recover(
-  keyType: string,
-  cryptoType: KeypairType,
-  key: string,
-  password: string
-) {
+function recover(keyType: string, cryptoType: KeypairType, key: string, password: string) {
   return new Promise((resolve, reject) => {
     let keyPair: KeyringPair;
     let mnemonic = "";
@@ -48,6 +88,9 @@ function recover(
     try {
       switch (keyType) {
         case "mnemonic":
+          if (!mnemonicValidate(key.split("/")[0])) {
+            throw new Error(`invalid mnemonic ${key}`);
+          }
           keyPair = keyring.addFromMnemonic(key, {}, cryptoType);
           mnemonic = key;
           break;
@@ -155,9 +198,7 @@ function _extractEvents(api: ApiPromise, result: SubmittableResult) {
         if (dispatchError.isModule) {
           try {
             const mod = dispatchError.asModule;
-            const err = api.registry.findMetaError(
-              new Uint8Array([mod.index.toNumber(), mod.error.toNumber()])
-            );
+            const err = api.registry.findMetaError(new Uint8Array([mod.index.toNumber(), mod.error.toNumber()]));
 
             message = `${err.section}.${err.name}`;
           } catch (error) {
@@ -185,13 +226,7 @@ function _extractEvents(api: ApiPromise, result: SubmittableResult) {
 /**
  * sign and send extrinsic to network and wait for result.
  */
-function sendTx(
-  api: ApiPromise,
-  txInfo: any,
-  paramList: any[],
-  password: string,
-  msgId: string
-) {
+function sendTx(api: ApiPromise, txInfo: any, paramList: any[], password: string, msgId: string) {
   return new Promise(async (resolve) => {
     let tx: SubmittableExtrinsic<"promise">;
     // wrap tx with council.propose for treasury propose
@@ -207,7 +242,7 @@ function sendTx(
       if (result.status.isInBlock || result.status.isFinalized) {
         const { success, error } = _extractEvents(api, result);
         if (success) {
-          resolve({ hash: tx.hash.toString() });
+          resolve({ hash: tx.hash.toString(), blockHash: result.status.asInBlock.toHex() });
         }
         if (error) {
           resolve({ error });
@@ -299,11 +334,7 @@ function changePassword(pubKey: string, passOld: string, passNew: string) {
 /**
  * check if user input DerivePath valid.
  */
-async function checkDerivePath(
-  seed: string,
-  derivePath: string,
-  pairType: KeypairType
-) {
+async function checkDerivePath(seed: string, derivePath: string, pairType: KeypairType) {
   try {
     const { path } = keyExtractSuri(`${seed}${derivePath}`);
     // we don't allow soft for ed25519
@@ -319,7 +350,7 @@ async function checkDerivePath(
 /**
  * sign tx with QR
  */
-async function signAsync(api: ApiPromise, password: string) {
+async function signAsync(chain: string, password: string) {
   return new Promise((resolve) => {
     const { unsignedData } = getSigner();
     const keyPair = keyring.getPair(unsignedData.data.account);
@@ -328,11 +359,20 @@ async function signAsync(api: ApiPromise, password: string) {
         keyPair.lock();
       }
       keyPair.decodePkcs8(password);
-      const payload = api.registry.createType(
-        "ExtrinsicPayload",
-        unsignedData.data.data,
-        { version: api.extrinsicVersion }
-      );
+
+      let payload: any;
+      if (!(<any>window).api) {
+        const registry = new TypeRegistry();
+        registry.setMetadata(new Metadata(registry, metaDataMap[chain]));
+        payload = registry.createType("ExtrinsicPayload", unsignedData.data.data, {
+          version: 4,
+        });
+      } else {
+        payload = (<any>window).api.registry.createType("ExtrinsicPayload", unsignedData.data.data, {
+          version: (<any>window).api.extrinsicVersion,
+        });
+      }
+
       const signed = payload.sign(keyPair);
       resolve(signed);
     } catch (err) {
@@ -355,7 +395,7 @@ function addSignatureAndSend(api: ApiPromise, address: string, signed: string) {
         if (result.status.isInBlock || result.status.isFinalized) {
           const { success, error } = _extractEvents(api, result);
           if (success) {
-            resolve({ hash: tx.hash.toString() });
+            resolve({ hash: tx.hash.toString(), blockHash: result.status.asInBlock.toHex() });
           }
           if (error) {
             resolve({ error });
@@ -382,7 +422,7 @@ function addSignatureAndSend(api: ApiPromise, address: string, signed: string) {
 /**
  * sign tx from dapp as extension
  */
-async function signTxAsExtension(api: ApiPromise, password: string, json: any) {
+async function signTxAsExtension(password: string, json: any) {
   return new Promise((resolve) => {
     const keyPair = keyring.getPair(json["address"]);
     try {
@@ -390,8 +430,17 @@ async function signTxAsExtension(api: ApiPromise, password: string, json: any) {
         keyPair.lock();
       }
       keyPair.decodePkcs8(password);
-      api.registry.setSignedExtensions(json["signedExtensions"]);
-      const payload = api.registry.createType("ExtrinsicPayload", json, {
+
+      let registry: any;
+      if (!(<any>window).api) {
+        registry = new TypeRegistry();
+        registry.setMetadata(new Metadata(registry, metaDataMap["kusama"]));
+      } else {
+        registry = (<any>window).api.registry;
+      }
+
+      registry.setSignedExtensions(json["signedExtensions"]);
+      const payload = registry.createType("ExtrinsicPayload", json, {
         version: json["version"],
       });
       const signed = payload.sign(keyPair);
@@ -405,11 +454,7 @@ async function signTxAsExtension(api: ApiPromise, password: string, json: any) {
 /**
  * sign bytes from dapp as extension
  */
-async function signBytesAsExtension(
-  api: ApiPromise,
-  password: string,
-  json: any
-) {
+async function signBytesAsExtension(password: string, json: any) {
   return new Promise((resolve) => {
     const keyPair = keyring.getPair(json["address"]);
     try {
@@ -418,7 +463,7 @@ async function signBytesAsExtension(
       }
       keyPair.decodePkcs8(password);
       resolve({
-        signature: u8aToHex(keyPair.sign(hexToU8a(json["data"]))),
+        signature: u8aToHex(keyPair.sign(wrapBytes(json["data"]))),
       });
     } catch (err) {
       resolve({ error: err.message });
@@ -426,9 +471,16 @@ async function signBytesAsExtension(
   });
 }
 
+async function verifySignature(message: string, signature: string, address: string) {
+  return signatureVerify(wrapBytes(message), signature, address);
+}
+
 export default {
   initKeys,
   gen,
+  checkMnemonicValid,
+  addressFromMnemonic,
+  addressFromRawSeed,
   recover,
   txFeeEstimate,
   sendTx,
@@ -441,4 +493,5 @@ export default {
   addSignatureAndSend,
   signTxAsExtension,
   signBytesAsExtension,
+  verifySignature,
 };

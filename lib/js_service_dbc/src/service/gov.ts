@@ -1,16 +1,15 @@
 import { ApiPromise } from "@polkadot/api";
 import { DeriveCollectiveProposal, DeriveReferendumExt, DeriveCouncilVotes } from "@polkadot/api-derive/types";
 import { SubmittableExtrinsic } from "@polkadot/api/types";
-import { GenericCall, getTypeDef, Option } from "@polkadot/types";
-import { CallFunction } from "@polkadot/types/types";
-import { OpenTip, AccountId, FunctionMetadataLatest } from "@polkadot/types/interfaces";
+import { getTypeDef, Option, Bytes } from "@polkadot/types";
+import { OpenTip, AccountId } from "@polkadot/types/interfaces";
 import { formatBalance, stringToU8a, BN_ZERO, hexToString } from "@polkadot/util";
 import BN from "bn.js";
 
 import { approxChanges } from "../utils/referendumApproxChanges";
 
-function _extractMetaData(value: FunctionMetadataLatest) {
-  const params = GenericCall.filterOrigin(value).map(({ name, type }) => ({
+function _extractMetaData(value: any) {
+  const params = value.meta.args.map(({ name, type }) => ({
     name: name.toString(),
     type: getTypeDef(type.toString()),
   }));
@@ -18,30 +17,32 @@ function _extractMetaData(value: FunctionMetadataLatest) {
     isValid: true,
     value,
   }));
-  const hash = value.hash;
+  const hash = value.hash.toHex();
+
   return { hash, params, values };
 }
 
 function _transfromProposalMeta(proposal: any): {} {
   const { meta } = proposal.registry.findMetaCall(proposal.callIndex);
+  const docs = meta.documentation || meta.docs;
   let doc = "";
-  for (let i = 0; i < meta.documentation.length; i++) {
-    if (meta.documentation[i].length) {
-      doc += meta.documentation[i];
+  for (let i = 0; i < docs.length; i++) {
+    if (docs[i].length) {
+      doc += docs[i];
     } else {
       break;
     }
   }
   const json = proposal.toHuman();
+  let args: string[] = Object.values(json.args);
   if (json.method == "setCode") {
-    const args = json.args;
-    json.args = [args[0].slice(0, 16) + "..." + args[0].slice(args[0].length - 16)];
+    args = [json.args.code.substring(0, 64)];
   }
   return {
     callIndex: proposal.toJSON().callIndex,
     method: json.method,
     section: json.section,
-    args: json.args,
+    args,
     meta: {
       ...meta.toJSON(),
       documentation: doc,
@@ -59,16 +60,12 @@ async function fetchReferendums(api: ApiPromise, address: string) {
     let proposalMeta: any = {};
     let parsedMeta: any = {};
     if (image && image.proposal) {
-      proposalMeta = _extractMetaData(image.proposal.registry.findMetaCall(image.proposal.callIndex).meta);
+      proposalMeta = _extractMetaData(image.proposal);
       parsedMeta = _transfromProposalMeta(image.proposal);
-      image.proposal = image.proposal.toHuman() as any;
-      if (image.proposal?.method == "setCode") {
-        const args = image.proposal.args;
-        image.proposal = {
-          ...image.proposal,
-          args: [(args[0].toString().slice(0, 16) + "..." + args[0].toString().slice(args[0].toString().length - 16)) as any],
-        } as any;
-      }
+      image.proposal = {
+        ...image.proposal.toHuman(),
+        args: parsedMeta.args,
+      } as any;
     }
 
     const changes = approxChanges(status.threshold, sqrtElectorate, {
@@ -184,9 +181,9 @@ async function getTreasuryOverview(api: ApiPromise) {
  * Query tips of treasury.
  */
 async function getTreasuryTips(api: ApiPromise) {
-  const tipKeys = await api.query.treasury.tips.keys();
+  const tipKeys = await (api.query.tips || api.query.treasury).tips.keys();
   const tipHashes = tipKeys.map((key) => key.args[0].toHex());
-  const optTips = (await api.query.treasury.tips.multi(tipHashes)) as Option<OpenTip>[];
+  const optTips = (await (api.query.tips || api.query.treasury).tips.multi(tipHashes)) as Option<OpenTip>[];
   const tips = optTips
     .map((opt, index) => [tipHashes[index], opt.unwrapOr(null)])
     .filter((val) => !!val[1])
@@ -194,7 +191,7 @@ async function getTreasuryTips(api: ApiPromise) {
   return Promise.all(
     tips.map(async (tip: any[]) => {
       const detail = tip[1].toJSON();
-      const reason = await api.query.treasury.reasons(detail.reason);
+      const reason = (await (api.query.tips || api.query.treasury).reasons(detail.reason)) as Option<Bytes>;
       const tips = detail.tips.map((e: any) => ({
         address: e[0],
         value: e[1],
@@ -213,7 +210,7 @@ async function getTreasuryTips(api: ApiPromise) {
  * make an extrinsic of treasury proposal submission for council member.
  */
 async function makeTreasuryProposalSubmission(api: ApiPromise, id: any, isReject: boolean): Promise<SubmittableExtrinsic<"promise">> {
-  const members = await api.query.electionsPhragmen.members<any[]>();
+  const members = await (api.query.electionsPhragmen || api.query.elections || api.query.phragmenElection).members<any[]>();
   const councilThreshold = Math.ceil(members.length * 0.6);
   const proposal = isReject ? api.tx.treasury.rejectProposal(id) : api.tx.treasury.approveProposal(id);
   return api.tx.council.propose(councilThreshold, proposal, proposal.length);
