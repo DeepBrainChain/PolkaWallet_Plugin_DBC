@@ -555,9 +555,10 @@ async function querySortedTargets(api: ApiPromise) {
   api.derive.staking.electedInfo({withExposure: true, withPrefs: true}),
   api.derive.staking.waitingInfo({withPrefs: true}),
   api.derive.session.info(),
-  api.query.staking.minNominatorBond(),
- ]);
- 
+  // Not need for current dbc-mainnet
+  // api.query.staking.minNominatorBond(),
+]);
+
  const partial = data[1] && data[2] && data[3] && data[4]
  ? _extractTargetsInfo(api, data[2], data[3], data[1], _transfromEra(data[4]), data[0])
  : {};
