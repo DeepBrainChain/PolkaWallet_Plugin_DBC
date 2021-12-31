@@ -47,8 +47,11 @@ class _NominateFormState extends State<NominateForm> {
 
   Widget _buildListItem(BuildContext context, ValidatorData validator) {
     final dicStaking = I18n.of(context)!.getDic(i18n_full_dic_dbc, 'staking')!;
+    // final maxNomination = int.parse(
+    //     widget.plugin.networkConst['staking']['maxNominations'].toString());
     final maxNomination = int.parse(
-        widget.plugin.networkConst['staking']['maxNominations'].toString());
+        widget.plugin.networkConst['staking']['maxNominatorRewardedPerValidator'].toString());
+
     final Map? accInfo =
         widget.plugin.store.accounts.addressIndexMap[validator.accountId];
     final accIcon =
