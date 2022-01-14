@@ -23,10 +23,12 @@ class ApiStaking {
   Future<Map?> fetchAccountRewards(int? eras) async {
     if (store!.staking.ownStashInfo != null &&
         store!.staking.ownStashInfo!.stakingLedger != null) {
-      int bonded = store!.staking.ownStashInfo!.stakingLedger!['active'];
+      // bonded = 0x000...be2
+      String bonded =
+          store!.staking.ownStashInfo!.stakingLedger!['active'].toString();
       List? unlocking =
           store!.staking.ownStashInfo!.stakingLedger!['unlocking'];
-      if (bonded > 0 || unlocking!.length > 0) {
+      if (bonded != "0" || unlocking!.length > 0) {
         String address = store!.staking.ownStashInfo!.stashId!;
         print('fetching staking rewards...');
         Map? res = await api.staking.queryAccountRewards(address, eras!);
