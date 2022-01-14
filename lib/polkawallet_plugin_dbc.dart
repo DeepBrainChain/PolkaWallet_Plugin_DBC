@@ -61,6 +61,7 @@ class PluginDBC extends PolkawalletPlugin {
     iconDisabled: Image.asset(
         'packages/polkawallet_plugin_dbc/assets/images/logo_gray.png'),
     jsCodeVersion: 10910,
+    isTestNet: false,
   );
 
   // @override

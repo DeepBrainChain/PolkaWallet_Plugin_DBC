@@ -121,11 +121,12 @@ class Gov extends StatelessWidget {
                               color: Colors.transparent,
                             ),
                             onTap: () => Navigator.of(context).pushNamed(
-                              DAppWrapperPage.route,
-                              arguments:
-                                  'https://${plugin.basic.name}.polkassembly.io/',
-                              // "https://polkadot.js.org/apps/",
-                            ),
+                                DAppWrapperPage.route,
+                                arguments:
+                                    'https://www.reddit.com/user/DeepBrainChainGlobal/'
+                                // 'https://${plugin.basic.name}.polkassembly.io/',
+                                // "https://polkadot.js.org/apps/",
+                                ),
                           ),
                         ),
                       ],
