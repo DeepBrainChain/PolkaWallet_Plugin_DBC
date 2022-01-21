@@ -58,6 +58,8 @@ class PluginDBC extends PolkawalletPlugin {
     ss58: 42,
     primaryColor: Colors.indigo,
     icon: Image.asset('packages/polkawallet_plugin_dbc/assets/images/logo.png'),
+    backgroundImage:
+        AssetImage('packages/polkawallet_plugin_dbc/assets/images/bg.png'),
     iconDisabled: Image.asset(
         'packages/polkawallet_plugin_dbc/assets/images/logo_gray.png'),
     jsCodeVersion: 10910,

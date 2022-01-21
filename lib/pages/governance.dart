@@ -112,11 +112,12 @@ class Gov extends StatelessWidget {
                           padding: EdgeInsets.only(bottom: 16),
                           child: GestureDetector(
                             child: EntryPageCard(
-                              'Polkassembly',
+                              'DBC 议案',
                               dic['polkassembly']!,
-                              Image.asset(
-                                'packages/polkawallet_plugin_dbc/assets/images/public/polkassembly.png',
-                                width: 48,
+                              SvgPicture.asset(
+                                'packages/polkawallet_plugin_dbc/assets/images/gov/proposal.svg',
+                                width: 96,
+                                color: Theme.of(context).primaryColor,
                               ),
                               color: Colors.transparent,
                             ),

@@ -73,5 +73,5 @@ const Map<String, String> zhGov = {
   'locked.no': '无锁定期(0.1x)',
   'day': '天',
   'detail': '详情',
-  'polkassembly': 'Polkadot 网络治理讨论平台',
+  'polkassembly': 'DBC 网络治理讨论平台',
 };

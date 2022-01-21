@@ -61,10 +61,13 @@ flutter:
     - assets/images/gov/democracy.svg
     - assets/images/gov/council.svg
     - assets/images/gov/treasury.svg
+    - assets/images/gov/proposal.svg
     - assets/images/tokens/DBC.png
     - assets/images/public/polkassembly.png
     - assets/images/public/nav_staking.svg
     - assets/images/public/nav_governance.svg
+    - assets/images/logo.png
+    - assets/images/
   #
   # For details regarding assets in packages, see
   # https://flutter.dev/assets-and-images/#from-packages
