@@ -41,11 +41,11 @@ class _StakePageState extends State<StakePage> {
             "actions": [
               {
                 'call': '${_bondParams.module}.${_bondParams.call}',
-                ..._bondParams.txDisplay!
+                ..._bondParams.txDisplay
               },
               {
                 'call': '${nominateParams.module}.${nominateParams.call}',
-                ...nominateParams.txDisplay!
+                ...nominateParams.txDisplay
               }
             ],
           },
