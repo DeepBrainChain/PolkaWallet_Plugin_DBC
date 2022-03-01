@@ -44,7 +44,7 @@ class ProposalPanel extends StatelessWidget {
                         proposalMeta != null
                             ? '${proposalMeta.section}.${proposalMeta.method}'
                             : 'preimage: ${Fmt.address(proposal.imageHash)}',
-                        style: Theme.of(context).textTheme.headline4,
+                        style: Theme.of(context).textTheme.bodyText1,
                       ),
                       Text(
                         '#${BigInt.parse(proposal.index)}',
