@@ -177,13 +177,13 @@ class _StakingOverviewPageState extends State<StakingOverviewPage> {
     final overview = widget.plugin.store.staking.overview;
     final hashData = stashInfo != null && stashInfo.stakingLedger != null;
 
-    int bonded = 0;
+    String bonded = "";
     List nominators = [];
     double nominatorListHeight = 48;
     bool? isController = false;
     bool isStash = true;
     if (hashData) {
-      bonded = int.parse(stashInfo!.stakingLedger!['active'].toString());
+      bonded = stashInfo!.stakingLedger!['active'].toString();
       nominators = stashInfo.nominating!.toList();
       if (nominators.length > 0) {
         nominatorListHeight = double.parse((nominators.length * 56).toString());
@@ -317,7 +317,7 @@ class _StakingOverviewPageState extends State<StakingOverviewPage> {
                               )
                             ],
                           ),
-                          onTap: bonded > 0
+                          onTap: bonded != "0"
                               ? _onSetNomination
                               : () => _goToBond(bondExtra: true),
                         ),
