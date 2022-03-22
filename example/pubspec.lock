@@ -22,6 +22,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.1"
+  card_swiper:
+    dependency: transitive
+    description:
+      name: card_swiper
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.3"
   characters:
     dependency: transitive
     description:
@@ -49,7 +56,7 @@ packages:
       path: charts_flutter
       ref: HEAD
       resolved-ref: d6adb193ff91d2042941bad388845cbc8c5cd964
-      url: "git://github.com/google/charts.git"
+      url: "https://github.com/google/charts.git"
     source: git
     version: "0.12.0"
   clock:
@@ -139,13 +146,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.2"
-  flutter_page_indicator:
-    dependency: transitive
-    description:
-      name: flutter_page_indicator
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.0.3"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -174,13 +174,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.23.0+1"
-  flutter_swiper:
-    dependency: transitive
-    description:
-      name: flutter_swiper
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.1.6"
   flutter_web_plugins:
     dependency: transitive
     description: flutter
@@ -423,14 +416,14 @@ packages:
       name: polkawallet_sdk
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.2"
+    version: "0.4.4"
   polkawallet_ui:
     dependency: "direct main"
     description:
       name: polkawallet_ui
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.1"
+    version: "0.4.4"
   process:
     dependency: transitive
     description:
@@ -548,13 +541,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.2.0"
-  transformer_page_view:
-    dependency: transitive
-    description:
-      name: transformer_page_view
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.6"
   typed_data:
     dependency: transitive
     description:

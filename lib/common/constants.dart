@@ -5,9 +5,14 @@ const int SECONDS_OF_YEAR = 365 * 24 * 60 * 60; // seconds of one year
 
 const node_list_dbc = [
   {
-    'name': 'DBC (DeepBrainChain Mainnet, hosted by DBC Team)',
+    'name': 'DBC (DBC Mainnet, by DBC Team)',
     'ss58': 42,
     'endpoint': 'wss://info.dbcwallet.io',
+  },
+  {
+    'name': 'DBC (DBC Mainnet, by DBC Team)',
+    'ss58': 42,
+    'endpoint': 'wss://info2.dbcwallet.io:7787',
   },
 ];
 

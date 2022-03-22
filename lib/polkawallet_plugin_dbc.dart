@@ -55,6 +55,7 @@ class PluginDBC extends PolkawalletPlugin {
   @override
   final basic = PluginBasicData(
     name: 'dbc',
+    genesisHash: genesis_hash_dbc,
     ss58: 42,
     primaryColor: Colors.indigo,
     icon: Image.asset('packages/polkawallet_plugin_dbc/assets/images/logo.png'),
