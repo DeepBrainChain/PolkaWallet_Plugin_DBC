@@ -7,13 +7,18 @@ const node_list_dbc = [
   {
     'name': 'DBC (DBC Mainnet, by DBC Team)',
     'ss58': 42,
-    'endpoint': 'wss://info.dbcwallet.io',
+    'endpoint': 'wss://info1.dbcwallet.io',
   },
   {
     'name': 'DBC (DBC Mainnet, by DBC Team)',
     'ss58': 42,
-    'endpoint': 'wss://info2.dbcwallet.io:7787',
+    'endpoint': 'wss://info.dbcwallet.io',
   },
+  // {
+  //   'name': 'DBC (DBC Mainnet, by DBC Team)',
+  //   'ss58': 42,
+  //   'endpoint': 'wss://info2.dbcwallet.io:7787',
+  // },
 ];
 
 const home_nav_items = ['staking', 'governance'];
